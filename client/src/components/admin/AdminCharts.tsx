@@ -6,6 +6,9 @@ import { BarChart3, TrendingUp, CheckCircle, PieChart, RefreshCw } from "lucide-
 // Chart.js imports
 import {
   Chart as ChartJS,
+  BarController,
+  LineController,
+  DoughnutController,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -20,6 +23,9 @@ import {
 import { Chart } from 'react-chartjs-2';
 
 ChartJS.register(
+  BarController,
+  LineController,
+  DoughnutController,
   CategoryScale,
   LinearScale,
   BarElement,
