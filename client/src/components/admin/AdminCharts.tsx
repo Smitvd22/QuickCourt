@@ -8,6 +8,7 @@ import {
   Chart as ChartJS,
   BarController,
   LineController,
+  PieController,
   DoughnutController,
   CategoryScale,
   LinearScale,
@@ -25,6 +26,7 @@ import { Chart } from 'react-chartjs-2';
 ChartJS.register(
   BarController,
   LineController,
+  PieController,
   DoughnutController,
   CategoryScale,
   LinearScale,
