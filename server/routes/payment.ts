@@ -6,11 +6,8 @@ import { eq } from "drizzle-orm";
 import { bookings } from "@shared/schema";
 import Stripe from "stripe";
 
-// Initialize Stripe
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-}
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 
 export function registerPaymentRoutes(app: Express, authenticateToken: any) {
   console.log('Stripe Config:', { 
@@ -18,9 +15,25 @@ export function registerPaymentRoutes(app: Express, authenticateToken: any) {
     publishable_key: process.env.STRIPE_PUBLISHABLE_KEY ? 'SET' : 'MISSING'
   });
 
+  const rejectIfStripeMissing = (req: any, res: any): boolean => {
+    if (stripe) {
+      return false;
+    }
+
+    res.status(503).json({
+      success: false,
+      message: "Stripe is not configured on the server"
+    });
+    return true;
+  };
+
   // Create payment intent
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
+      if (rejectIfStripeMissing(req, res)) {
+        return;
+      }
+
       console.log('Payment intent request body:', req.body);
 
       // Validate required fields
@@ -31,17 +44,10 @@ export function registerPaymentRoutes(app: Express, authenticateToken: any) {
         });
       }
 
-      if (!process.env.STRIPE_SECRET_KEY) {
-        return res.status(500).json({
-          success: false,
-          message: "Payment gateway not configured properly"
-        });
-      }
-
       const { amount, currency = 'inr', metadata = {}, bookingIds } = req.body;
 
       // Create a PaymentIntent with the order amount and currency
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await stripe!.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to smallest currency unit (paise for INR)
         currency: currency,
         metadata: {
@@ -93,6 +99,10 @@ export function registerPaymentRoutes(app: Express, authenticateToken: any) {
   // Confirm payment and handle success
   app.post("/api/confirm-payment", async (req, res) => {
     try {
+      if (rejectIfStripeMissing(req, res)) {
+        return;
+      }
+
       const { paymentIntentId } = req.body;
 
       if (!paymentIntentId) {
@@ -103,7 +113,7 @@ export function registerPaymentRoutes(app: Express, authenticateToken: any) {
       }
 
       // Retrieve the payment intent to check its status
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent = await stripe!.paymentIntents.retrieve(paymentIntentId);
 
       if (paymentIntent.status === 'succeeded') {
         // Payment was successful
@@ -150,9 +160,13 @@ export function registerPaymentRoutes(app: Express, authenticateToken: any) {
   // Get payment status
   app.get("/api/payment-status/:paymentIntentId", async (req, res) => {
     try {
+      if (rejectIfStripeMissing(req, res)) {
+        return;
+      }
+
       const { paymentIntentId } = req.params;
 
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent = await stripe!.paymentIntents.retrieve(paymentIntentId);
 
       res.json({
         success: true,
@@ -174,6 +188,10 @@ export function registerPaymentRoutes(app: Express, authenticateToken: any) {
   // Create booking with payment intent
   app.post("/api/create-booking-payment", authenticateToken, async (req: any, res) => {
     try {
+      if (rejectIfStripeMissing(req, res)) {
+        return;
+      }
+
       const { facilityId, date, startTime, endTime, totalAmount, notes } = req.body;
       
       // Validate required fields
@@ -184,7 +202,7 @@ export function registerPaymentRoutes(app: Express, authenticateToken: any) {
       }
 
       // Create payment intent first
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await stripe!.paymentIntents.create({
         amount: Math.round(totalAmount * 100), // Convert to paise
         currency: 'inr',
         metadata: {

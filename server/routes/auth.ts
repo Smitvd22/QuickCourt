@@ -32,6 +32,10 @@ export function registerAuthRoutes(app: Express) {
       const { email } = req.body;
       const result = await AuthService.sendSignupOTP(email);
       
+      if (result.otpDisabled) {
+        return res.json({ message: result.message, otpDisabled: true });
+      }
+
       if (!result.success) {
         return res.status(400).json({ message: result.message });
       }
@@ -68,6 +72,10 @@ export function registerAuthRoutes(app: Express) {
       const { email } = req.body;
       const result = await AuthService.sendLoginOTP(email);
       
+      if (result.otpDisabled) {
+        return res.json({ message: result.message, otpDisabled: true });
+      }
+
       if (!result.success) {
         return res.status(400).json({ message: result.message });
       }

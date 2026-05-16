@@ -15,6 +15,13 @@
       "when": 1754971129539,
       "tag": "0001_absurd_pepper_potts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778921145495,
+      "tag": "0002_nervous_proudstar",
+      "breakpoints": true
     }
   ]
 }

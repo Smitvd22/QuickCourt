@@ -1,13 +1,20 @@
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
-if (!process.env.RESEND_API_KEY) {
-  throw new Error('RESEND_API_KEY environment variable is required');
-}
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
+const resendFrom = process.env.RESEND_FROM || "QuickCourt <onboarding@resend.dev>";
 
 export class EmailService {
+  static isEnabled(): boolean {
+    return Boolean(resendApiKey && resend);
+  }
+
   static async sendOTP(email: string, code: string, type: 'signup' | 'login' | 'password_reset') {
+    if (!resend) {
+      console.warn("Resend is disabled. Set RESEND_API_KEY to enable email sending.");
+      return { success: false, error: "Email service disabled" };
+    }
+
     const subjects = {
       signup: 'Verify your QuickCourt account',
       login: 'Your QuickCourt login code',
@@ -22,7 +29,7 @@ export class EmailService {
 
     try {
       const result = await resend.emails.send({
-        from: 'QuickCourt <noreply@contact.blockcelerate.net>',
+        from: resendFrom,
         to: [email],
         subject: subjects[type],
         html: `
@@ -39,7 +46,13 @@ export class EmailService {
         `,
       });
 
-      return { success: true, data: result };
+      if (result.error) {
+        console.error("Resend email error", { to: email, type, error: result.error });
+        return { success: false, error: result.error.message || "Resend error" };
+      }
+
+      console.log("Resend email queued", { id: result.data?.id, to: email, type });
+      return { success: true, data: result.data };
     } catch (error) {
       console.error('Failed to send email:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -51,6 +64,11 @@ export class EmailService {
   }
 
   static async sendFacilityCreationNotification(adminEmails: string[], facilityName: string, ownerName: string, facilityId: string) {
+    if (!resend) {
+      console.warn("Resend is disabled. Skipping facility creation notification email.");
+      return { success: false, error: "Email service disabled" };
+    }
+
     console.log('📧 Sending facility creation notification to:', adminEmails);
     
     try {
@@ -82,6 +100,11 @@ export class EmailService {
   }
 
   static async sendFacilityApprovalNotification(ownerEmail: string, facilityName: string, isApproved: boolean, rejectionReason?: string) {
+    if (!resend) {
+      console.warn("Resend is disabled. Skipping facility approval notification email.");
+      return { success: false, error: "Email service disabled" };
+    }
+
     const subject = isApproved 
       ? 'Facility Approved - QuickCourt' 
       : 'Facility Rejected - QuickCourt';

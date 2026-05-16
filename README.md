@@ -48,7 +48,7 @@ This project was created for **Odoo Hackathon August 2025**, a prestigious hacka
 
 ## 👥 Contributors
 
-**Project Lead: [Naishadh Rana](https://github.com/Zenith1009)**
+**Project Lead: [Smit Deoghare](https://github.com/Smitvd22)**
 
 <table>
 <tr>
@@ -164,7 +164,8 @@ Make sure you have the following installed:
 - **Node.js** (version 18 or higher)
 - **npm** package manager
 - **PostgreSQL** database
-- **AWS S3** bucket (for file uploads)
+- **Resend** account (optional, for email OTPs)
+- **Cloudinary** account (for file uploads)
 - **Stripe** account (for payments)
 
 <details>
@@ -188,21 +189,29 @@ Make sure you have the following installed:
    
    Create environment files and add the following variables:
    ```env
-   # Database
-   DATABASE_URL=your_postgresql_database_url
-   
-   # Authentication
-   JWT_SECRET=your_jwt_secret
-   
-   # AWS S3
-   AWS_ACCESS_KEY_ID=your_aws_access_key
-   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-   AWS_BUCKET_NAME=your_s3_bucket_name
-   AWS_REGION=your_aws_region
-   
-   # Stripe
-   STRIPE_PUBLIC_KEY=your_stripe_public_key
-   STRIPE_SECRET_KEY=your_stripe_secret_key
+  # Database
+  DATABASE_URL=your_postgresql_database_url
+
+  # Authentication
+  JWT_SECRET=your_jwt_secret
+
+  # Email (Resend)
+  RESEND_API_KEY=your_resend_api_key
+
+  # Cloudinary (image uploads)
+  CLOUDINARY_CLOUD_NAME=your_cloud_name
+  CLOUDINARY_API_KEY=your_api_key
+  CLOUDINARY_API_SECRET=your_api_secret
+  CLOUDINARY_FOLDER=quickcourt
+
+  # Stripe
+  STRIPE_SECRET_KEY=your_stripe_secret_key
+  STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+  VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+
+  # Server
+  PORT=5000
+  CORS_ORIGIN=http://localhost:5173
    ```
 
 4. **Set up the database**
@@ -218,7 +227,7 @@ Make sure you have the following installed:
 
 6. **Open your browser**
    
-   Navigate to [http://localhost:3000](http://localhost:3000) to see the application running.
+  Navigate to [http://localhost:5000](http://localhost:5000) to see the application running.
 
 </details>
 

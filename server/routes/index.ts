@@ -4,7 +4,7 @@ import { registerAuthRoutes } from "./auth";
 import { registerUserRoutes } from "./user";
 import { registerFacilityRoutes } from "./facility";
 import { registerBookingRoutes } from "./booking";
-// import { registerMatchRoutes } from "./match";
+import { registerMatchRoutes } from "./match";
 import { registerAdminRoutes } from "./admin";
 import { registerPaymentRoutes } from "./payment";
 import { registerUtilityRoutes } from "./utility";
@@ -15,7 +15,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app, authenticateToken);
   registerFacilityRoutes(app, authenticateToken, requireRole);
   registerBookingRoutes(app, authenticateToken);
-  // registerMatchRoutes(app, authenticateToken);
+  registerMatchRoutes(app, authenticateToken);
   registerAdminRoutes(app, authenticateToken, requireRole);
   registerPaymentRoutes(app, authenticateToken);
   registerUtilityRoutes(app, authenticateToken, requireRole);

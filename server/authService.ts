@@ -9,6 +9,14 @@ export class AuthService {
   private static readonly OTP_EXPIRY_MINUTES = 10;
 
   static async sendSignupOTP(email: string) {
+    if (!EmailService.isEnabled()) {
+      return {
+        success: true,
+        otpDisabled: true,
+        message: "OTP disabled. Proceed with direct signup.",
+      };
+    }
+
     // Check if user already exists
     const existingUser = await storage.getUserByEmail(email);
     if (existingUser) {
@@ -18,6 +26,10 @@ export class AuthService {
     // Generate and send OTP
     const code = EmailService.generateOTP();
     const expiresAt = new Date(Date.now() + this.OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[dev] OTP for ${email} (signup): ${code}`);
+    }
 
     // Store OTP
     await storage.createOtpCode({
@@ -37,6 +49,10 @@ export class AuthService {
   }
 
   static async verifySignupOTP(email: string, code: string, userData: Omit<InsertUser, 'id'>) {
+    if (!EmailService.isEnabled()) {
+      return { success: false, message: "OTP verification is disabled" };
+    }
+
     // Verify OTP
     const otpCode = await storage.getValidOtpCode(email, code, 'signup');
     if (!otpCode) {
@@ -73,6 +89,14 @@ export class AuthService {
   }
 
   static async sendLoginOTP(email: string) {
+    if (!EmailService.isEnabled()) {
+      return {
+        success: true,
+        otpDisabled: true,
+        message: "OTP disabled. Use password login instead.",
+      };
+    }
+
     // Check if user exists
     const user = await storage.getUserByEmail(email);
     if (!user) {
@@ -82,6 +106,10 @@ export class AuthService {
     // Generate and send OTP
     const code = EmailService.generateOTP();
     const expiresAt = new Date(Date.now() + this.OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[dev] OTP for ${email} (login): ${code}`);
+    }
 
     // Store OTP
     await storage.createOtpCode({
@@ -101,6 +129,10 @@ export class AuthService {
   }
 
   static async verifyLoginOTP(email: string, code: string) {
+    if (!EmailService.isEnabled()) {
+      return { success: false, message: "OTP verification is disabled" };
+    }
+
     // Verify OTP
     const otpCode = await storage.getValidOtpCode(email, code, 'login');
     if (!otpCode) {

@@ -1,11 +1,9 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import pg from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 import dotenv from "dotenv";
 import * as schema from "@shared/schema";
 
 dotenv.config();
-neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -13,5 +11,11 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const { Pool } = pg;
+const allowSelfSigned = process.env.DB_SSL_ALLOW_SELF_SIGNED === "true";
+
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: allowSelfSigned ? { rejectUnauthorized: false } : { rejectUnauthorized: true },
+});
 export const db = drizzle({ client: pool, schema });

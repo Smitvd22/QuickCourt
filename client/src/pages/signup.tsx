@@ -59,9 +59,29 @@ export default function Signup() {
   const sendOtpMutation = useMutation({
     mutationFn: async (data: SignupFormData) => {
       const { confirmPassword, ...userData } = data;
-      return await apiRequest("/api/auth/signup/send-otp", "POST", userData);
+      const response = await apiRequest("/api/auth/signup/send-otp", "POST", userData);
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (response: any, variables: SignupFormData) => {
+      if (response?.otpDisabled) {
+        const { confirmPassword, ...userData } = variables;
+        try {
+          await apiRequest("/api/auth/register", "POST", userData);
+          toast({
+            title: "Account Created",
+            description: "OTP is disabled. You can now log in.",
+          });
+          setLocation("/login");
+        } catch (error: any) {
+          toast({
+            title: "Signup Failed",
+            description: error.message || "Failed to create account.",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
       setOtpStep('verify');
       toast({
         title: "Verification Code Sent",
