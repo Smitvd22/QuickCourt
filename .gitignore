@@ -9,3 +9,5 @@ attached_assets
 client/.env.local
 /.kiro
 /migrations
+.vscode
+package-lock.json
